@@ -5,149 +5,93 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ALG Soluciones</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
 <style>
-body {
-    margin: 0;
-    font-family: 'Arial', sans-serif;
-    background: #0a0a0a;
-    color: #fff;
-}
-
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 50px;
-    background: #000;
-}
-
-.logo {
-    font-size: 24px;
-    font-weight: bold;
-    color: gold;
-}
-
-nav a {
-    color: white;
-    margin-left: 20px;
-    text-decoration: none;
-}
-
-.hero {
-    text-align: center;
-    padding: 100px 20px;
-}
-
-.hero h1 {
-    font-size: 50px;
-}
-
-.hero p {
-    color: #aaa;
-    margin-top: 10px;
-}
-
-.btn {
-    margin-top: 20px;
-    padding: 15px 30px;
-    background: gold;
-    color: black;
-    text-decoration: none;
-    font-weight: bold;
-    border-radius: 5px;
-}
-
-.section {
-    padding: 60px 20px;
-    text-align: center;
-}
-
-.cards {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
-}
-
-.card {
-    background: #111;
-    padding: 20px;
-    width: 250px;
-    border-radius: 10px;
-}
-
-.card img {
-    width: 100%;
-    border-radius: 10px;
-}
-
-footer {
-    text-align: center;
-    padding: 20px;
-    background: #000;
-    color: #777;
-}
+body { font-family: Arial; background:#0a0a0a; color:white; text-align:center; }
+input, button { padding:10px; margin:5px; }
+.card { background:#111; margin:10px; padding:10px; }
 </style>
-
 </head>
 
 <body>
 
-<header>
-    <div class="logo">ALG Soluciones</div>
-    <nav>
-        <a href="#">Inicio</a>
-        <a href="#productos">Productos</a>
-        <a href="#vender">Vender</a>
-        <a href="#contacto">Contacto</a>
-    </nav>
-</header>
+<h1>ALG Soluciones</h1>
 
-<section class="hero">
-    <h1>Compra y vende fácil</h1>
-    <p>Conectamos compradores con oportunidades reales</p>
-    <a class="btn" href="https://wa.me/573008081554">WhatsApp</a>
-</section>
+<h2>Registro</h2>
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+<button onclick="register()">Registrarse</button>
 
-<section id="productos" class="section">
-    <h2>Productos destacados</h2>
+<h2>Login</h2>
+<button onclick="login()">Ingresar</button>
 
-    <div class="cards">
-        <div class="card">
-            <img src="https://via.placeholder.com/250">
-            <h3>variedad Motos en venta</h3>
-            <p>desde $1.999.000</p>
-        </div>
+<h2>Agregar producto</h2>
+<input id="name" placeholder="Nombre">
+<input id="price" placeholder="Precio">
+<input id="image" placeholder="URL Imagen">
+<button onclick="addProduct()">Subir</button>
 
-        <div class="card">
-            <img src="https://via.placeholder.com/250">
-            <h3>iPhone-android</h3>
-            <p>$149.000</p>
-        </div>
+<h2>Productos</h2>
+<div id="products"></div>
 
-        <div class="card">
-            <img src="https://via.placeholder.com/250">
-            <h3>Electrodomesticos(nevere,lavadora y mas)</h3>
-            <p>$399.000</p>
-        </div>
-    </div>
-</section>
+<script>
+const supabase = window.supabase.createClient(
+  "https://iprnmxpmdfyndcysjawz.supabase.co",
+  "sb_publishable_SfC3Ufb9ds3sg2yGRlfrIA_AB2N2j2R"
+);
 
-<section id="vender" class="section">
-    <h2>¿Tienes algo que no usas y quieres vender? o quieres comprar algo que necesitas?</h2>
-    <p>Publicamos, respondemos y conseguimos compradores por ti.</p>
-    <a class="btn" href="https://wa.me/57TU_NUMERO">Publicar producto</a>
-</section>
+// REGISTRO
+async function register() {
+  let email = document.getElementById("email").value;
+  let password = document.getElementById("password").value;
 
-<section id="contacto" class="section">
-    <h2>Contáctanos</h2>
-    <p>Escríbenos y te ayudamos a comprar o vender rápido</p>
-    <a class="btn" href="https://wa.me/57TU_NUMERO">Hablar ahora</a>
-</section>
+  let { error } = await supabase.auth.signUp({ email, password });
 
-<footer>
-    <p>© 2026 ALG Soluciones - Todos los derechos reservados</p>
-</footer>
+  alert(error ? error.message : "Usuario creado");
+}
+
+// LOGIN
+async function login() {
+  let email = document.getElementById("email").value;
+  let password = document.getElementById("password").value;
+
+  let { error } = await supabase.auth.signInWithPassword({ email, password });
+
+  alert(error ? error.message : "Bienvenido");
+}
+
+// AGREGAR PRODUCTO
+async function addProduct() {
+  let name = document.getElementById("name").value;
+  let price = document.getElementById("price").value;
+  let image = document.getElementById("image").value;
+
+  await supabase.from("products").insert([{ name, price, image }]);
+  loadProducts();
+}
+
+// MOSTRAR PRODUCTOS
+async function loadProducts() {
+  let { data } = await supabase.from("products").select("*");
+
+  let container = document.getElementById("products");
+  container.innerHTML = "";
+
+  data.forEach(p => {
+    container.innerHTML += `
+      <div class="card">
+        <img src="${p.image}" width="200">
+        <h3>${p.name}</h3>
+        <p>${p.price}</p>
+        <a href="https://wa.me/573008081554?text=Hola quiero ${p.name}">Comprar</a>
+      </div>
+    `;
+  });
+}
+
+loadProducts();
+</script>
 
 </body>
 </html>
