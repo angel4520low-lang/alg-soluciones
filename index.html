@@ -5,56 +5,231 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ALG Soluciones</title>
 
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>
+body {
+  margin:0;
+  font-family: 'Segoe UI', sans-serif;
+  background:#0f0f0f;
+  color:white;
+}
 
+/* NAV */
+nav {
+  position:fixed;
+  width:100%;
+  background:#000;
+  padding:10px;
+  display:flex;
+  justify-content:space-between;
+  z-index:1000;
+}
+
+nav h2 { color:gold; margin:0; }
+
+nav input {
+  padding:8px;
+  border-radius:5px;
+  border:none;
+}
+
+/* HERO */
+.hero {
+  padding-top:80px;
+  text-align:center;
+  padding-bottom:40px;
+}
+
+.hero h1 {
+  color:gold;
+  font-size:35px;
+}
+
+/* CATEGORIAS */
+.categories {
+  display:flex;
+  overflow-x:auto;
+  padding:10px;
+}
+
+.cat {
+  background:#222;
+  padding:10px;
+  margin:5px;
+  border-radius:20px;
+  cursor:pointer;
+}
+
+/* PRODUCTOS */
+.grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(220px,1fr));
+  gap:15px;
+  padding:20px;
+}
+
+.card {
+  background:#111;
+  border-radius:12px;
+  padding:10px;
+  position:relative;
+}
+
+.card img {
+  width:100%;
+  border-radius:10px;
+}
+
+.badge {
+  position:absolute;
+  top:10px;
+  left:10px;
+  background:red;
+  padding:5px;
+  font-size:12px;
+  border-radius:5px;
+}
+
+.price { color:gold; font-size:18px; }
+.old { text-decoration:line-through; color:gray; }
+
+.btn {
+  display:block;
+  background:gold;
+  color:black;
+  padding:8px;
+  text-align:center;
+  margin-top:10px;
+  border-radius:5px;
+  text-decoration:none;
+}
+
+/* WHATSAPP FLOAT */
+.whatsapp {
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  background:#25D366;
+  padding:15px;
+  border-radius:50%;
+  color:white;
+  font-size:20px;
+}
+
+/* FOOTER */
+footer {
+  text-align:center;
+  padding:20px;
+  background:#000;
+}
+</style>
 </head>
 
 <body>
 
-<h1>ALG Soluciones</h1>
+<!-- NAV -->
+<nav>
+  <h2>ALG</h2>
+  <input id="search" placeholder="Buscar...">
+</nav>
 
-<input id="email" placeholder="Email"><br>
-<input id="password" type="password" placeholder="Password"><br>
+<!-- HERO -->
+<div class="hero">
+  <h1>ALG Soluciones</h1>
+  <p>Compra fácil, rápido y seguro</p>
+</div>
 
-<button id="registerBtn">Registrarse</button>
-<button id="loginBtn">Login</button>
+<!-- CATEGORIAS -->
+<div class="categories">
+  <div class="cat" onclick="filterCat('all')">Todo</div>
+  <div class="cat" onclick="filterCat('motos')">Motos</div>
+  <div class="cat" onclick="filterCat('tecnologia')">Tecnología</div>
+  <div class="cat" onclick="filterCat('hogar')">Hogar</div>
+</div>
+
+<!-- PRODUCTOS -->
+<div class="grid" id="products"></div>
+
+<!-- INFO -->
+<div style="padding:20px;text-align:center;">
+  <h2>¿Cómo comprar?</h2>
+  <p>Selecciona un producto → Haz clic en comprar → Escríbenos por WhatsApp</p>
+
+  <h2>Contacto</h2>
+  <p>📱 3008081554</p>
+  <p>📧 tuemail@gmail.com</p>
+</div>
+
+<!-- BOTON WHATSAPP -->
+<a class="whatsapp" href="https://wa.me/573008081554">💬</a>
+
+<footer>ALG Soluciones © 2026</footer>
 
 <script>
-const supabase = window.supabase.createClient(
-  "https://iprnmxpmdfyndcysjawz.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlwcm5teHBtZGZ5bmRjeXNqYXd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2Mzg3MTIsImV4cCI6MjA5MDIxNDcxMn0.kwa5cDF4FlIhbCuP88TImNW2mXl36z5gBMIaJxl90f0"
-);
+// BASE DE PRODUCTOS
+let products = [
+  {
+    name:"Moto NKD 125",
+    price: "4.200.000",
+    old:"4.800.000",
+    category:"motos",
+    img:"https://via.placeholder.com/300",
+    discount:"-12%"
+  },
+  {
+    name:"iPhone 13",
+    price:"2.800.000",
+    old:"3.200.000",
+    category:"tecnologia",
+    img:"https://via.placeholder.com/300",
+    discount:"-10%"
+  },
+  {
+    name:"Licuadora",
+    price:"180.000",
+    old:"220.000",
+    category:"hogar",
+    img:"https://via.placeholder.com/300",
+    discount:"-18%"
+  }
+];
 
-document.addEventListener("DOMContentLoaded", () => {
+let filtered = [...products];
 
-  alert("JS cargado"); // 🔥 prueba
-
-  const registerBtn = document.getElementById("registerBtn");
-  const loginBtn = document.getElementById("loginBtn");
-
-  registerBtn.addEventListener("click", async () => {
-    alert("Click registro");
-
-    let email = document.getElementById("email").value;
-    let password = document.getElementById("password").value;
-
-    let { error } = await supabase.auth.signUp({ email, password });
-
-    alert(error ? error.message : "Usuario creado");
+// RENDER
+function render(list) {
+  let html = "";
+  list.forEach(p => {
+    html += `
+    <div class="card">
+      <div class="badge">${p.discount}</div>
+      <img src="${p.img}">
+      <h3>${p.name}</h3>
+      <p class="old">$${p.old}</p>
+      <p class="price">$${p.price}</p>
+      <a class="btn" href="https://wa.me/573008081554?text=Hola quiero ${p.name}">
+        Comprar
+      </a>
+    </div>
+    `;
   });
+  document.getElementById("products").innerHTML = html;
+}
 
-  loginBtn.addEventListener("click", async () => {
-    alert("Click login");
-
-    let email = document.getElementById("email").value;
-    let password = document.getElementById("password").value;
-
-    let { error } = await supabase.auth.signInWithPassword({ email, password });
-
-    alert(error ? error.message : "Bienvenido");
-  });
-
+// BUSCADOR
+document.getElementById("search").addEventListener("keyup", e => {
+  let text = e.target.value.toLowerCase();
+  let result = products.filter(p => p.name.toLowerCase().includes(text));
+  render(result);
 });
+
+// FILTRO
+function filterCat(cat) {
+  if(cat === "all") render(products);
+  else render(products.filter(p => p.category === cat));
+}
+
+// INIT
+render(products);
 </script>
 
 </body>
