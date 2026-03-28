@@ -79,6 +79,10 @@ a {
   width:80%;
   max-width:400px;
 }
+
+.hidden {
+  display:none;
+}
 </style>
 </head>
 
@@ -88,22 +92,25 @@ a {
 
 <div class="container">
 
-<h2>Registro / Login</h2>
+<h2>Cuenta</h2>
 <input id="email" placeholder="Email">
 <input id="password" type="password" placeholder="Password">
 <br>
-<button onclick="register()">Registrarse</button>
-<button onclick="login()">Ingresar</button>
+<button id="registerBtn">Registrarse</button>
+<button id="loginBtn">Ingresar</button>
+<button id="logoutBtn">Cerrar sesión</button>
+
+<p id="status"></p>
 
 <h2>Buscar productos</h2>
-<input id="search" placeholder="Buscar..." onkeyup="filterProducts()">
+<input id="search" placeholder="Buscar...">
 
 <h2>Subir producto</h2>
 <input id="name" placeholder="Nombre">
 <input id="price" placeholder="Precio">
 <input id="image" placeholder="URL Imagen">
 <br>
-<button onclick="addProduct()">Publicar</button>
+<button id="addBtn">Publicar</button>
 
 <h2>Catálogo</h2>
 <div class="cards" id="products"></div>
@@ -116,60 +123,89 @@ const supabase = window.supabase.createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlwcm5teHBtZGZ5bmRjeXNqYXd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2Mzg3MTIsImV4cCI6MjA5MDIxNDcxMn0.kwa5cDF4FlIhbCuP88TImNW2mXl36z5gBMIaJxl90f0"
 );
 
-// REGISTRO
-async function register() {
-  try {
-    let email = document.getElementById("email").value;
-    let password = document.getElementById("password").value;
-
-    let { error } = await supabase.auth.signUp({ email, password });
-
-    alert(error ? error.message : "Usuario creado correctamente");
-  } catch (e) {
-    console.error(e);
-  }
-}
-
-// LOGIN
-async function login() {
-  try {
-    let email = document.getElementById("email").value;
-    let password = document.getElementById("password").value;
-
-    let { error } = await supabase.auth.signInWithPassword({ email, password });
-
-    alert(error ? error.message : "Bienvenido");
-  } catch (e) {
-    console.error(e);
-  }
-}
-
-// AGREGAR PRODUCTO
-async function addProduct() {
-  try {
-    let name = document.getElementById("name").value;
-    let price = document.getElementById("price").value;
-    let image = document.getElementById("image").value;
-
-    await supabase.from("products").insert([{ name, price, image }]);
-
-    loadProducts();
-  } catch (e) {
-    console.error(e);
-  }
-}
-
-// CARGAR PRODUCTOS
 let allProducts = [];
+let currentUser = null;
 
+// --------- EVENTOS ---------
+document.addEventListener("DOMContentLoaded", () => {
+
+  document.getElementById("registerBtn").addEventListener("click", register);
+  document.getElementById("loginBtn").addEventListener("click", login);
+  document.getElementById("logoutBtn").addEventListener("click", logout);
+  document.getElementById("addBtn").addEventListener("click", addProduct);
+  document.getElementById("search").addEventListener("keyup", filterProducts);
+
+  checkUser();
+  loadProducts();
+});
+
+// --------- USUARIO ---------
+async function checkUser() {
+  const { data } = await supabase.auth.getUser();
+  currentUser = data.user;
+
+  document.getElementById("status").innerText =
+    currentUser ? "Conectado como: " + currentUser.email : "No has iniciado sesión";
+}
+
+// --------- REGISTRO ---------
+async function register() {
+  let email = document.getElementById("email").value;
+  let password = document.getElementById("password").value;
+
+  if (!email || !password) return alert("Completa los campos");
+
+  let { error } = await supabase.auth.signUp({ email, password });
+
+  alert(error ? error.message : "Usuario creado");
+}
+
+// --------- LOGIN ---------
+async function login() {
+  let email = document.getElementById("email").value;
+  let password = document.getElementById("password").value;
+
+  let { error } = await supabase.auth.signInWithPassword({ email, password });
+
+  alert(error ? error.message : "Bienvenido");
+  checkUser();
+}
+
+// --------- LOGOUT ---------
+async function logout() {
+  await supabase.auth.signOut();
+  alert("Sesión cerrada");
+  checkUser();
+}
+
+// --------- AGREGAR PRODUCTO ---------
+async function addProduct() {
+  if (!currentUser) {
+    alert("Debes iniciar sesión");
+    return;
+  }
+
+  let name = document.getElementById("name").value;
+  let price = document.getElementById("price").value;
+  let image = document.getElementById("image").value;
+
+  if (!name || !price || !image) return alert("Completa todo");
+
+  await supabase.from("products").insert([{ name, price, image }]);
+
+  alert("Producto agregado");
+  loadProducts();
+}
+
+// --------- CARGAR PRODUCTOS ---------
 async function loadProducts() {
   let { data } = await supabase.from("products").select("*");
 
-  allProducts = data;
-  renderProducts(data);
+  allProducts = data || [];
+  renderProducts(allProducts);
 }
 
-// MOSTRAR PRODUCTOS
+// --------- MOSTRAR PRODUCTOS ---------
 function renderProducts(products) {
   let container = document.getElementById("products");
   container.innerHTML = "";
@@ -181,14 +217,14 @@ function renderProducts(products) {
         <h3>${p.name}</h3>
         <p>${p.price}</p>
         <a href="https://wa.me/573008081554?text=Hola estoy interesado en ${p.name}">
-        Comprar
+          Comprar
         </a>
       </div>
     `;
   });
 }
 
-// BUSCADOR
+// --------- BUSCADOR ---------
 function filterProducts() {
   let text = document.getElementById("search").value.toLowerCase();
 
@@ -198,8 +234,6 @@ function filterProducts() {
 
   renderProducts(filtered);
 }
-
-loadProducts();
 </script>
 
 </body>
