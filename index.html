@@ -1,58 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALG Soluciones</title>
+
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+<style>
+body {
+  margin:0;
+  font-family: Arial;
+  background:#0a0a0a;
+  color:white;
+}
+
+header {
+  background:#000;
+  padding:15px;
+  text-align:center;
+  color:gold;
+  font-size:24px;
+  font-weight:bold;
+}
+
+.container {
+  padding:20px;
+  text-align:center;
+}
+
+input {
+  padding:10px;
+  margin:5px;
+  border-radius:5px;
+  border:none;
+  width:200px;
+}
+
+button {
+  padding:10px 15px;
+  margin:5px;
+  border:none;
+  background:gold;
+  cursor:pointer;
+  border-radius:5px;
+}
+
+.cards {
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+
+.card {
+  background:#111;
+  margin:10px;
+  padding:10px;
+  border-radius:10px;
+  width:220px;
+}
+
+.card img {
+  width:100%;
+  border-radius:10px;
+}
+
+a {
+  color:black;
+  text-decoration:none;
+  display:block;
+  margin-top:10px;
+  background:gold;
+  padding:5px;
+  border-radius:5px;
+}
+
+#search {
+  width:80%;
+  max-width:400px;
+}
+</style>
+</head>
+
+<body>
+
+<header>ALG Soluciones</header>
+
+<div class="container">
+
+<h2>Registro / Login</h2>
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+<br>
+<button onclick="register()">Registrarse</button>
+<button onclick="login()">Ingresar</button>
+
+<h2>Buscar productos</h2>
+<input id="search" placeholder="Buscar..." onkeyup="filterProducts()">
+
+<h2>Subir producto</h2>
+<input id="name" placeholder="Nombre">
+<input id="price" placeholder="Precio">
+<input id="image" placeholder="URL Imagen">
+<br>
+<button onclick="addProduct()">Publicar</button>
+
+<h2>Catálogo</h2>
+<div class="cards" id="products"></div>
+
+</div>
 
 <script>
 const supabase = window.supabase.createClient(
   "https://iprnmxpmdfyndcysjawz.supabase.co",
-  "sb_publishable_SfC3Ufb9ds3sg2yGRlfrIA_AB2N2j2R"
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlwcm5teHBtZGZ5bmRjeXNqYXd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2Mzg3MTIsImV4cCI6MjA5MDIxNDcxMn0.kwa5cDF4FlIhbCuP88TImNW2mXl36z5gBMIaJxl90f0"
 );
-<script> 
+
 // REGISTRO
 async function register() {
-  let email = document.getElementById("email").value;
-  let password = document.getElementById("password").value;
+  try {
+    let email = document.getElementById("email").value;
+    let password = document.getElementById("password").value;
 
-  let { error } = await supabase.auth.signUp({ email, password });
-  alert(error ? error.message : "Usuario creado");
+    let { error } = await supabase.auth.signUp({ email, password });
+
+    alert(error ? error.message : "Usuario creado correctamente");
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 // LOGIN
 async function login() {
-  let email = document.getElementById("email").value;
-  let password = document.getElementById("password").value;
+  try {
+    let email = document.getElementById("email").value;
+    let password = document.getElementById("password").value;
 
-  let { error } = await supabase.auth.signInWithPassword({ email, password });
-  alert(error ? error.message : "Bienvenido");
+    let { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    alert(error ? error.message : "Bienvenido");
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 // AGREGAR PRODUCTO
 async function addProduct() {
-  let name = document.getElementById("name").value;
-  let price = document.getElementById("price").value;
-  let image = document.getElementById("image").value;
+  try {
+    let name = document.getElementById("name").value;
+    let price = document.getElementById("price").value;
+    let image = document.getElementById("image").value;
 
-  await supabase.from("products").insert([{ name, price, image }]);
-  loadProducts();
+    await supabase.from("products").insert([{ name, price, image }]);
+
+    loadProducts();
+  } catch (e) {
+    console.error(e);
+  }
 }
 
-// MOSTRAR PRODUCTOS
+// CARGAR PRODUCTOS
+let allProducts = [];
+
 async function loadProducts() {
   let { data } = await supabase.from("products").select("*");
 
+  allProducts = data;
+  renderProducts(data);
+}
+
+// MOSTRAR PRODUCTOS
+function renderProducts(products) {
   let container = document.getElementById("products");
   container.innerHTML = "";
 
-  data.forEach(p => {
+  products.forEach(p => {
     container.innerHTML += `
       <div class="card">
-        <img src="${p.image}" width="200">
+        <img src="${p.image}">
         <h3>${p.name}</h3>
         <p>${p.price}</p>
-        <a href="https://wa.me/573008081554?text=Hola quiero ${p.name}">Comprar</a>
+        <a href="https://wa.me/573008081554?text=Hola estoy interesado en ${p.name}">
+        Comprar
+        </a>
       </div>
     `;
   });
 }
 
+// BUSCADOR
+function filterProducts() {
+  let text = document.getElementById("search").value.toLowerCase();
+
+  let filtered = allProducts.filter(p =>
+    p.name.toLowerCase().includes(text)
+  );
+
+  renderProducts(filtered);
+}
+
 loadProducts();
 </script>
 
+</body>
+</html>
