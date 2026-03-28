@@ -1,42 +1,9 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ALG Soluciones</title>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-
-<style>
-body { font-family: Arial; background:#0a0a0a; color:white; text-align:center; }
-input, button { padding:10px; margin:5px; }
-.card { background:#111; margin:10px; padding:10px; }
-</style>
-</head>
-
-<body>
-
-<h1>ALG Soluciones</h1>
-
-<h2>Registro</h2>
-<input id="email" placeholder="Email">
-<input id="password" type="password" placeholder="Password">
-<button onclick="register()">Registrarse</button>
-
-<h2>Login</h2>
-<button onclick="login()">Ingresar</button>
-
-<h2>Agregar producto</h2>
-<input id="name" placeholder="Nombre">
-<input id="price" placeholder="Precio">
-<input id="image" placeholder="URL Imagen">
-<button onclick="addProduct()">Subir</button>
-
-<h2>Productos</h2>
-<div id="products"></div>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
 <script>
-const supabase = window.supabase.createClient("https://iprnmxpmdfyndcysjawz.supabase.co","sb_publishable_SfC3Ufb9ds3sg2yGRlfrIA_AB2N2j2R"
+const supabase = window.supabase.createClient(
+  "TU_URL",
+  "TU_KEY"
 );
 
 // REGISTRO
@@ -45,7 +12,6 @@ async function register() {
   let password = document.getElementById("password").value;
 
   let { error } = await supabase.auth.signUp({ email, password });
-
   alert(error ? error.message : "Usuario creado");
 }
 
@@ -55,7 +21,6 @@ async function login() {
   let password = document.getElementById("password").value;
 
   let { error } = await supabase.auth.signInWithPassword({ email, password });
-
   alert(error ? error.message : "Bienvenido");
 }
 
@@ -91,5 +56,3 @@ async function loadProducts() {
 loadProducts();
 </script>
 
-</body>
-</html>
